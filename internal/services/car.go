@@ -8,7 +8,7 @@ import (
 )
 
 type CarRepository interface {
-	Store(c context.Context, req domain.Car) (domain.CarDB, error)
+	Store(c context.Context, req domain.Car, ownerID uint64) (domain.CarDB, error)
 	Delete(c context.Context, id uint64) error
 	Patch(c context.Context, req domain.CarPatchRequest, id uint64) (domain.CarDB, error)
 	List(c context.Context, params domain.CarFilterParams) ([]domain.CarWithOwnerDB, error)
@@ -44,6 +44,7 @@ func (cs *CarService) Post(c context.Context, req domain.CarPostRequest) ([]doma
 			log.Println("[ERROR] CarController.Post: Failed to get response from outer API: ", err.Error())
 			return nil, err
 		}
+		resp.Body.Close()
 
 		car := domain.Car{
 			Mark:   carResp.Mark,
@@ -58,7 +59,6 @@ func (cs *CarService) Post(c context.Context, req domain.CarPostRequest) ([]doma
 		}
 
 		cars = append(cars, car)
-		resp.Body.Close()
 	}
 
 	var carsResp []domain.CarPostResponse
@@ -67,7 +67,7 @@ func (cs *CarService) Post(c context.Context, req domain.CarPostRequest) ([]doma
 		if err != nil {
 			return nil, err
 		}
-		carDB, err := cs.cr.Store(c, v)
+		carDB, err := cs.cr.Store(c, v, owDB.ID)
 		if err != nil {
 			return nil, err
 		}
