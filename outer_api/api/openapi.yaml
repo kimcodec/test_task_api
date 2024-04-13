@@ -1,0 +1,77 @@
+openapi: 3.0.3
+info:
+  title: Car info
+  version: 0.0.1
+servers:
+- url: /
+paths:
+  /info:
+    get:
+      parameters:
+      - explode: true
+        in: query
+        name: regNum
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+          description: Ok
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+components:
+  schemas:
+    Car:
+      example:
+        owner:
+          patronymic: patronymic
+          surname: surname
+          name: name
+        regNum: X123XX150
+        year: 2002
+        model: Vesta
+        mark: Lada
+      properties:
+        regNum:
+          example: X123XX150
+          type: string
+        mark:
+          example: Lada
+          type: string
+        model:
+          example: Vesta
+          type: string
+        year:
+          example: 2002
+          type: integer
+        owner:
+          $ref: '#/components/schemas/People'
+      required:
+      - mark
+      - model
+      - owner
+      - regNum
+      type: object
+    People:
+      example:
+        patronymic: patronymic
+        surname: surname
+        name: name
+      properties:
+        name:
+          type: string
+        surname:
+          type: string
+        patronymic:
+          type: string
+      required:
+      - name
+      - surname
+      type: object
