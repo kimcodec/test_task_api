@@ -1,9 +1,10 @@
 package repository
 
 import (
+	"context"
 	"github.com/jmoiron/sqlx"
 	"github.com/kimcodec/test_api_task/domain"
-	"github.com/labstack/echo/v4"
+	_ "github.com/lib/pq"
 )
 
 type OwnerRepository struct {
@@ -16,10 +17,10 @@ func NewOwnerRepository(db *sqlx.DB) *OwnerRepository {
 	}
 }
 
-func (or *OwnerRepository) Get(c echo.Context, id uint64) (domain.OwnerDB, error) {
+func (or *OwnerRepository) Get(c context.Context, id uint64) (domain.OwnerDB, error) {
 	return domain.OwnerDB{}, nil
 }
 
-func (or *OwnerRepository) Store(c echo.Context, own domain.OwnerToStore) (domain.OwnerDB, error) {
+func (or *OwnerRepository) Store(c context.Context, own domain.OwnerToStore) (domain.OwnerDB, error) {
 	return domain.OwnerDB{}, nil
 }
