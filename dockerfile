@@ -12,6 +12,7 @@ COPY cmd cmd
 COPY controllers controllers
 COPY domain domain
 COPY internal internal
+COPY .env .env
 COPY entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh
 

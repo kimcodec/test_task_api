@@ -4,9 +4,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	"github.com/kimcodec/test_api_task/controllers"
+	openapi "github.com/kimcodec/test_api_task/internal/outer_api"
 	"github.com/kimcodec/test_api_task/internal/repository"
 	"github.com/kimcodec/test_api_task/internal/services"
-	openapi "github.com/kimcodec/test_api_task/outer_api"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
@@ -15,7 +15,7 @@ import (
 
 const (
 	defaultAddress = ":8080"
-	defaultDBURI   = "postgres://postgres:postgres@localhost:5432/test_api?sslmode=disable"
+	defaultDBURI   = "postgres://postgres:postgres@postgres:5432/test_api_db?sslmode=disable"
 )
 
 func init() {
