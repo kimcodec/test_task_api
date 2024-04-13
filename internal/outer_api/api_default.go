@@ -19,7 +19,7 @@ import (
 )
 
 
-// DefaultApiService DefaultApi services
+// DefaultApiService DefaultApi service
 type DefaultApiService service
 
 type ApiInfoGetRequest struct {

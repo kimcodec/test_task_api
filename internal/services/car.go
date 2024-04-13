@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"github.com/kimcodec/test_api_task/domain"
-	openapi "github.com/kimcodec/test_api_task/outer_api"
+	openapi "github.com/kimcodec/test_api_task/internal/outer_api"
 	"log"
 )
 
