@@ -34,8 +34,7 @@ func main() {
 	oc := repository.NewOwnerRepository(db)
 	cr := repository.NewCarRepository(db)
 
-	cfg := openapi.NewConfiguration()
-	outerApi := openapi.NewAPIClient(cfg)
+	outerApi := openapi.NewAPIClient(openapi.NewConfiguration())
 
 	cs := services.NewCarService(cr, oc, outerApi)
 

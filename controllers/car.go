@@ -14,7 +14,7 @@ type CarService interface {
 	List(c context.Context, params domain.CarFilterParams) ([]domain.CarListResponse, error)
 	Delete(c context.Context, id uint64) error
 	Patch(c context.Context, req domain.CarPatchRequest, id uint64) (domain.CarPatchResponse, error)
-	Post(c context.Context, req domain.CarPostRequest) (domain.CarPostResponse, error)
+	Post(c context.Context, req domain.CarPostRequest) ([]domain.CarPostResponse, error)
 }
 
 type CarController struct {
@@ -145,6 +145,7 @@ func getQueryParams(c echo.Context) (domain.CarFilterParams, error) {
 	var (
 		limit  uint64
 		offset uint64
+		year   uint64
 		mark   string
 		model  string
 		regNum string
@@ -172,6 +173,17 @@ func getQueryParams(c echo.Context) (domain.CarFilterParams, error) {
 		offset = 0
 	}
 
+	yearStr := c.QueryParam("offset")
+	if yearStr != "" {
+		yearTemp, err := strconv.Atoi(offsetStr)
+		if err != nil {
+			return domain.CarFilterParams{}, err
+		}
+		year = uint64(yearTemp)
+	} else {
+		year = 0
+	}
+
 	mark = c.QueryParam("mark")
 	if mark == "" {
 		mark = "%"
@@ -196,6 +208,7 @@ func getQueryParams(c echo.Context) (domain.CarFilterParams, error) {
 	return domain.CarFilterParams{
 		Offset: offset,
 		Limit:  limit,
+		Year:   year,
 		Model:  model,
 		Mark:   mark,
 		RegNum: regNum,

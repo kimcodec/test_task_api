@@ -17,7 +17,7 @@ func NewCarRepository(db *sqlx.DB) *CarRepository {
 	}
 }
 
-func (cr *CarRepository) Store(c context.Context, req domain.CarPostRequest) (domain.CarDB, error) {
+func (cr *CarRepository) Store(c context.Context, req domain.Car) (domain.CarDB, error) {
 	return domain.CarDB{}, nil
 }
 
@@ -25,10 +25,10 @@ func (cr *CarRepository) Delete(c context.Context, id uint64) error {
 	return nil
 }
 
-func (cr *CarRepository) Patch(c context.Context, req domain.CarPatchRequest) (domain.CarDB, error) {
+func (cr *CarRepository) Patch(c context.Context, req domain.CarPatchRequest, id uint64) (domain.CarDB, error) {
 	return domain.CarDB{}, nil
 }
 
-func (cr *CarRepository) List(c context.Context, params domain.CarFilterParams) ([]domain.CarDB, error) {
+func (cr *CarRepository) List(c context.Context, params domain.CarFilterParams) ([]domain.CarWithOwnerDB, error) {
 	return nil, nil
 }

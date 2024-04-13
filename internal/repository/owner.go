@@ -21,6 +21,6 @@ func (or *OwnerRepository) Get(c context.Context, id uint64) (domain.OwnerDB, er
 	return domain.OwnerDB{}, nil
 }
 
-func (or *OwnerRepository) Store(c context.Context, own domain.OwnerToStore) (domain.OwnerDB, error) {
+func (or *OwnerRepository) Store(c context.Context, own domain.Owner) (domain.OwnerDB, error) {
 	return domain.OwnerDB{}, nil
 }
