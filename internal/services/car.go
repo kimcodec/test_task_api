@@ -1,14 +1,14 @@
 package services
 
 import (
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
-	"sort"
 
 	"github.com/kimcodec/test_api_task/domain"
 	openapi "github.com/kimcodec/test_api_task/internal/outer_api"
 
 	"context"
-	"log"
+	"sort"
 	"sync"
 )
 

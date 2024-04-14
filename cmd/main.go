@@ -6,14 +6,16 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
+	echoSwagger "github.com/swaggo/echo-swagger"
 
 	"github.com/kimcodec/test_api_task/controllers"
+	_ "github.com/kimcodec/test_api_task/docs"
 	openapi "github.com/kimcodec/test_api_task/internal/outer_api"
 	"github.com/kimcodec/test_api_task/internal/repository"
 	"github.com/kimcodec/test_api_task/internal/services"
 
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -28,6 +30,9 @@ func init() {
 		log.Fatal("Error loading .env file")
 	}
 }
+
+//	@title		API
+//	@version	1
 
 func main() {
 	dbHost := os.Getenv("DB_HOST")
@@ -60,10 +65,32 @@ func main() {
 
 	e := echo.New()
 	defer e.Close()
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{}))
+
+	logger := log.New()
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogRemoteIP: true,
+		LogHost:     true,
+		LogProtocol: true,
+		LogMethod:   true,
+		LogURI:      true,
+		LogStatus:   true,
+		LogValuesFunc: func(c echo.Context, values middleware.RequestLoggerValues) error {
+			logger.WithFields(log.Fields{
+				"RemoteIP": values.RemoteIP,
+				"Host":     values.Host,
+				"Protocol": values.Protocol,
+				"Method":   values.Method,
+				"URI":      values.URI,
+				"status":   values.Status,
+			}).Info("request details")
+
+			return nil
+		},
+	}))
 	e.Use(middleware.CORS())
 
 	controllers.NewCarController(e, cs)
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	appPort := os.Getenv("APP_PORT")
 	if appPort == "" {

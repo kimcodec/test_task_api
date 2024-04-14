@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/kimcodec/test_api_task/domain"
 
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -35,6 +35,15 @@ func NewCarController(e *echo.Echo, cs CarService) {
 	g.POST("", cc.Post)
 }
 
+// @summary		Post
+// @tags			cars
+// @Description	Добавление машин
+// @ID				cars-post
+// @Accept			json
+// @Produce		json
+// @Param			req	body		domain.CarPostRequest	true	"Государственные номера"
+// @Success		200	{array}	domain.CarPostResponse
+// @Router			/cars [post]
 func (cc *CarController) Post(c echo.Context) error {
 	var carReq domain.CarPostRequest
 	if err := c.Bind(&carReq); err != nil {
@@ -56,6 +65,13 @@ func (cc *CarController) Post(c echo.Context) error {
 	return c.JSON(http.StatusOK, car)
 }
 
+// @summary		Delete
+// @tags			cars
+// @Description	Удаление машин
+// @ID				cars-delete
+// @Produce		json
+// @Param        id   path      int  true  "Car ID"
+// @Router			/cars/{id} [delete]
 func (cc *CarController) Delete(c echo.Context) error {
 	idParam := c.Param("id")
 	if idParam == "" {
@@ -86,6 +102,16 @@ func (cc *CarController) Delete(c echo.Context) error {
 	})
 }
 
+// @summary		Patch
+// @tags			cars
+// @Description	Изменение машин
+// @ID				cars-patch
+// @Accept			json
+// @Produce		json
+// @Param        id   path      int  true  "Car ID"
+// @Param			req	body		domain.CarPatchRequest	true	"Данные о машине"
+// @Success		200	{array}	domain.CarPatchResponse
+// @Router			/cars/{id} [patch]
 func (cc *CarController) Patch(c echo.Context) error {
 	idParam := c.Param("id")
 	if idParam == "" {
@@ -123,6 +149,20 @@ func (cc *CarController) Patch(c echo.Context) error {
 	return c.JSON(http.StatusOK, car)
 }
 
+// @summary		List
+// @tags			cars
+// @Description	Получени машин
+// @ID				cars-list
+// @Accept			json
+// @Produce		json
+// @Param			offset		query	integer	false "offser"
+// @Param			limit		query	integer	false "limit"
+// @Param			year		query	integer	false "year"
+// @Param			mark		query	string	false "car mark"
+// @Param			model		query	string	false "car model"
+// @Param			reg_num		query	string	false "registation number"
+// @Success		200	{array}	domain.CarListResponse
+// @Router			/cars [get]
 func (cc *CarController) List(c echo.Context) error {
 	params, err := getQueryParams(c)
 	if err != nil {

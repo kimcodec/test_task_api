@@ -3,12 +3,12 @@ package repository
 import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/kimcodec/test_api_task/domain"
 
 	"context"
 	"errors"
-	"log"
 )
 
 type OwnerRepository struct {
