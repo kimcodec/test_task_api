@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"github.com/labstack/echo/v4"
+
+	"github.com/kimcodec/test_api_task/domain"
+
 	"context"
 	"fmt"
-	"github.com/kimcodec/test_api_task/domain"
-	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
 	"strconv"
@@ -173,9 +175,9 @@ func getQueryParams(c echo.Context) (domain.CarFilterParams, error) {
 		offset = 0
 	}
 
-	yearStr := c.QueryParam("offset")
+	yearStr := c.QueryParam("year")
 	if yearStr != "" {
-		yearTemp, err := strconv.Atoi(offsetStr)
+		yearTemp, err := strconv.Atoi(yearStr)
 		if err != nil {
 			return domain.CarFilterParams{}, err
 		}

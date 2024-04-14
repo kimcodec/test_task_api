@@ -1,20 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
-	"os"
 
 	"github.com/kimcodec/test_api_task/controllers"
 	openapi "github.com/kimcodec/test_api_task/internal/outer_api"
 	"github.com/kimcodec/test_api_task/internal/repository"
 	"github.com/kimcodec/test_api_task/internal/services"
 
+	"fmt"
 	"log"
+	"os"
 )
 
 const (
@@ -60,7 +60,7 @@ func main() {
 
 	e := echo.New()
 	defer e.Close()
-	e.Use(middleware.Logger())
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{}))
 	e.Use(middleware.CORS())
 
 	controllers.NewCarController(e, cs)

@@ -1,10 +1,15 @@
 package services
 
 import (
-	"context"
+	"golang.org/x/sync/errgroup"
+	"sort"
+
 	"github.com/kimcodec/test_api_task/domain"
 	openapi "github.com/kimcodec/test_api_task/internal/outer_api"
+
+	"context"
 	"log"
+	"sync"
 )
 
 type CarRepository interface {
@@ -36,56 +41,108 @@ func NewCarService(cr CarRepository, or OwnerRepository, outerApi *openapi.APICl
 func (cs *CarService) Post(c context.Context, req domain.CarPostRequest) ([]domain.CarPostResponse, error) {
 	var cars []domain.Car
 	// Запрос к внешнему API
-	for _, v := range req.RegNum {
-		info := cs.outerApi.DefaultApi.InfoGet(c)
-		info = info.RegNum(v)
-		carResp, resp, err := info.Execute()
-		if err != nil {
-			log.Println("[ERROR] CarController.Post: Failed to get response from outer API: ", err.Error())
-			return nil, err
-		}
-		resp.Body.Close()
+	g := new(errgroup.Group)
+	var mu sync.Mutex
+	for _, v := range req.RegNums {
+		num := v
+		g.Go(func() error {
+			info := cs.outerApi.DefaultApi.InfoGet(c)
+			info = info.RegNum(num)
+			carResp, resp, err := info.Execute()
+			if err != nil {
+				return err
+			}
+			resp.Body.Close()
 
-		car := domain.Car{
-			Mark:   carResp.Mark,
-			Model:  carResp.Model,
-			RegNum: carResp.RegNum,
-			Year:   carResp.Year,
-			Owner: domain.Owner{
-				Name:       carResp.Owner.Name,
-				Surname:    carResp.Owner.Surname,
-				Patronymic: carResp.Owner.Patronymic,
-			},
-		}
+			car := domain.Car{
+				Mark:   carResp.Mark,
+				Model:  carResp.Model,
+				RegNum: carResp.RegNum,
+				Year:   carResp.Year,
+				Owner: domain.Owner{
+					Name:       carResp.Owner.Name,
+					Surname:    carResp.Owner.Surname,
+					Patronymic: carResp.Owner.Patronymic,
+				},
+			}
 
-		cars = append(cars, car)
+			/*year1 := gofakeit.Year()
+			year2 := int32(year1)
+			car := domain.Car{
+				Mark:   gofakeit.CarMaker(),
+				Model:  gofakeit.CarModel(),
+				RegNum: num,
+				Year:   &year2,
+				Owner: domain.Owner{
+					Name:       gofakeit.FirstName(),
+					Surname:    gofakeit.LastName(),
+					Patronymic: nil,
+				},
+			}*/
+			mu.Lock()
+			cars = append(cars, car)
+			mu.Unlock()
+			return nil
+		})
+	}
+	if err := g.Wait(); err != nil {
+		log.Println("[ERROR] CarController.Post: Failed to get response from outer API: ", err.Error())
+		return nil, err
 	}
 
+	errGr := new(errgroup.Group)
 	var carsResp []domain.CarPostResponse
 	for _, v := range cars {
-		owDB, err := cs.or.Store(c, v.Owner)
-		if err != nil {
-			return nil, err
+		car := v
+		errGr.Go(func() error {
+			owDB, err := cs.or.Store(c, car.Owner)
+			if err != nil {
+				return err
+			}
+			carDB, err := cs.cr.Store(c, car, owDB.ID)
+			if err != nil {
+				return err
+			}
+			car := domain.CarPostResponse{
+				ID:     carDB.ID,
+				Model:  carDB.Model,
+				Mark:   carDB.Mark,
+				Year:   carDB.Year,
+				RegNum: carDB.RegNum,
+				Owner: domain.OwnerResponse{
+					ID:         owDB.ID,
+					Name:       owDB.Name,
+					Surname:    owDB.Surname,
+					Patronymic: owDB.Patronymic,
+				},
+			}
+			mu.Lock()
+			carsResp = append(carsResp, car)
+			mu.Unlock()
+			return nil
+		})
+	}
+
+	if err := errGr.Wait(); err != nil {
+		delGroup := new(errgroup.Group)
+		for _, v := range carsResp {
+			id := v.ID
+			delGroup.Go(func() error {
+				return cs.cr.Delete(c, id)
+			})
 		}
-		carDB, err := cs.cr.Store(c, v, owDB.ID)
-		if err != nil {
-			return nil, err
+		if delErr := delGroup.Wait(); delErr != nil {
+			log.Println("[ERROR] CarController.Post: Failed while rollback trx: ", delErr.Error())
+			return nil, delErr
 		}
 
-		car := domain.CarPostResponse{
-			Model:  carDB.Model,
-			Mark:   carDB.Mark,
-			Year:   carDB.Year,
-			RegNum: carDB.RegNum,
-			Owner: domain.OwnerResponse{
-				ID:         owDB.ID,
-				Name:       owDB.Name,
-				Surname:    owDB.Surname,
-				Patronymic: owDB.Patronymic,
-			},
-		}
-		carsResp = append(carsResp, car)
+		log.Println("[ERROR] CarController.Post: Failed to add car: ", err.Error())
+		return nil, err
 	}
+
+	sort.Slice(carsResp, func(i, j int) bool {
+		return carsResp[i].ID < carsResp[j].ID
+	})
 	return carsResp, nil
 }
 
@@ -98,10 +155,11 @@ func (cs *CarService) List(c context.Context, params domain.CarFilterParams) ([]
 	var cars []domain.CarListResponse
 	for _, v := range carsDB {
 		car := domain.CarListResponse{
-			ID:    v.ID,
-			Mark:  v.Mark,
-			Model: v.Model,
-			Year:  v.Year,
+			ID:     v.ID,
+			RegNum: v.RegNum,
+			Mark:   v.Mark,
+			Model:  v.Model,
+			Year:   v.Year,
 			Owner: domain.OwnerResponse{
 				ID:         v.Owner,
 				Name:       v.Name,

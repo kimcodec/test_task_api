@@ -10,7 +10,7 @@ type CarFilterParams struct {
 }
 
 type CarPostRequest struct {
-	RegNum []string `json:"reg_num"`
+	RegNums []string `json:"reg_nums"`
 }
 
 type CarPostResponse struct {
@@ -32,9 +32,9 @@ type CarListResponse struct {
 }
 
 type CarPatchRequest struct {
-	RegNum string  `json:"reg_num"`
-	Mark   string  `json:"mark"`
-	Model  string  `json:"model"`
+	RegNum *string `json:"reg_num"`
+	Mark   *string `json:"mark"`
+	Model  *string `json:"model"`
 	Year   *string `json:"year"`
 }
 
