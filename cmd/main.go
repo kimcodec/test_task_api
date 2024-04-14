@@ -1,21 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	_ "github.com/lib/pq"
+	"os"
+
 	"github.com/kimcodec/test_api_task/controllers"
 	openapi "github.com/kimcodec/test_api_task/internal/outer_api"
 	"github.com/kimcodec/test_api_task/internal/repository"
 	"github.com/kimcodec/test_api_task/internal/services"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	_ "github.com/lib/pq"
+
 	"log"
 )
 
 const (
-	defaultAddress = ":8080"
-	defaultDBURI   = "postgres://postgres:postgres@postgres:5432/test_api_db?sslmode=disable"
+	defaultPort  = "8080"
+	defaultDBURI = "postgres://postgres:postgres@postgres:5432/test_api_db?sslmode=disable"
 )
 
 func init() {
@@ -26,7 +30,23 @@ func init() {
 }
 
 func main() {
-	db, err := sqlx.Connect("postgres", defaultDBURI)
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	sslMode := os.Getenv("SSL_MODE")
+
+	dbURI := ""
+	if dbHost == "" || dbPort == "" || dbUser == "" || dbPassword == "" || dbName == "" || sslMode == "" {
+		log.Println("[ERROR] Failed to make db URI. Using default value")
+		dbURI = defaultDBURI
+	} else {
+		dbURI = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+			dbUser, dbPassword, dbHost, dbPort, dbName, sslMode)
+	}
+
+	db, err := sqlx.Connect("postgres", dbURI)
 	if err != nil {
 		log.Fatal("[FATAL] Failed to connect to db: ", err.Error())
 	}
@@ -45,7 +65,12 @@ func main() {
 
 	controllers.NewCarController(e, cs)
 
-	if err := e.Start(defaultAddress); err != nil {
+	appPort := os.Getenv("APP_PORT")
+	if appPort == "" {
+		log.Println("[ERROR] Failed to get app_port. Using default value.")
+		appPort = defaultPort
+	}
+	if err := e.Start(":" + appPort); err != nil {
 		log.Fatal("[FATAL] Failed to start app: ", err.Error())
 	}
 }
